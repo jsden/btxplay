@@ -1,4 +1,7 @@
 <?php
+use Bitrix\Main\Config\Option;
+use Bitrix\Main\Mail\Event;
+
 $_SERVER["DOCUMENT_ROOT"] = realpath(dirname(__FILE__) . "/../..");
 $DOCUMENT_ROOT = $_SERVER["DOCUMENT_ROOT"];
 
@@ -25,6 +28,7 @@ class DmitryTestBase
     const FIELD_PHONE = 'PHONE';
     const FIELD_EMAIL = 'EMAIL';
     const FIELD_SOURCE = 'SOURCE';
+    const FIELD_OWNER = 'ASSIGNED_BY_ID';
 
     protected function toUtf($message)
     {
@@ -46,6 +50,27 @@ class DmitryTestBase
         echo $message . "\n";
     }
 
+    protected function getServerUrl()
+    {
+        return 'http://' .
+            Option::get('main', 'server_name', '');
+    }
+
+    protected function getContactHyperLink($arContact)
+    {
+        return "<a href='{$this->getContactEmail($arContact['ID'])}'>{$arContact['FULL_NAME']}</a>";
+    }
+
+    protected function getContactUrl($id)
+    {
+        return $this->getServerUrl() . "/contact/details/{$id}/";
+    }
+
+    protected function getLeadUrl($id)
+    {
+        return $this->getServerUrl() . "/crm/lead/details/{$id}/";
+    }
+
     /**
      *
      * @return CDBResult
@@ -59,6 +84,19 @@ class DmitryTestBase
                 'CHECK_PERMISSIONS' => 'N',
             ]
         );
+    }
+
+    protected function sendEmaiLWrapper($data)
+    {
+        echo "Sending mail\n";
+        print_r($data);
+
+        // Event::send($data);
+    }
+
+    protected function getContactEmail($id)
+    {
+        return $this->fetchMulti($id, self::FIELD_EMAIL);
     }
 
     protected function fetchMulti($id, $field)

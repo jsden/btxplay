@@ -16,11 +16,20 @@ class CreateLeads extends DmitryTestBase
         }
     }
 
+    /**
+     * Создать запись в таймлайне
+     *
+     * @param $arContact
+     * @param $leadId
+     * @return array|int
+     */
     protected function createTimeLine($arContact, $leadId)
     {
+        $link = $this->getContactHyperLink($arContact);
+
         $arStatus = [
             'AUTHOR_ID' => self::CREATOR_ID,
-            'TEXT'      => $this->fromUtf("Создан на основании контакта {$arContact['FULL_NAME']}"),
+            'TEXT'      => $this->fromUtf("Создан на основании контакта {$link}"),
             'BINDINGS'  => [
                 [
                     'ENTITY_ID'      => $arContact['ID'],
@@ -38,6 +47,12 @@ class CreateLeads extends DmitryTestBase
         );
     }
 
+    /**
+     * Создать лид на основании контакта
+     *
+     * @param $arContact
+     * @return bool|int
+     */
     public function createLead($arContact)
     {
         $lead = new CCrmLead(false);
@@ -45,7 +60,7 @@ class CreateLeads extends DmitryTestBase
         $arFields = [
             'ASSIGNED_BY_ID'      => self::CREATOR_ID,
             'SOURCE_ID'           => 'PARTNER',
-            'TITLE'               => $this->fromUtf("Лид для продвижения вебинара {$arContact['FULL_NAME']}"),
+            'TITLE'               => $this->fromUtf("Лид для продвижения вебинара {$this->getContactHyperLink($arContact)}"),
             'NAME'                => $arContact['NAME'],
             'LAST_NAME'           => $arContact['LAST_NAME'],
             'SECOND_NAME'         => $arContact['SECOND_NAME'],

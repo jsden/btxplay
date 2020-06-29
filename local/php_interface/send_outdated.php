@@ -5,10 +5,11 @@ require_once "./bootstrap.php";
 
 class SendOutdated extends DmitryTestBase
 {
-    const OUTDATED_FILTER = '-1 day';
+    const OUTDATED_FILTER = '-1 second';
 
     public function __invoke()
     {
+        // Получить список лидов, где последнее изменение производилось N-ое время назад
         $leads = CCrmLead::GetList(
             [
                 'STATUS_ID' => 'DESC',
@@ -24,26 +25,129 @@ class SendOutdated extends DmitryTestBase
             ]
         );
 
+        $arLeads = [];
+
+        // Получить доп. детали по каждому лиду
         while ($arLead = $leads->Fetch())
         {
-            $this->sendEmailToOwner($arLead);
-            $this->sendEmailToResponsible($arLead);
+            $arLeads[] = $this->assembleLead($arLead);
         }
 
-        exit;
+        if ($arLeads)
+        {
+            $arGroupedLeads = $this->groupLeadsBy($arLeads, self::FIELD_OWNER);
+
+            foreach ($arGroupedLeads as $arGrouped)
+            {
+                $this->sendEmailToOwner($arGrouped);
+                $this->sendEmailToResponsible($arGrouped);
+            }
+        }
+
+        echo "Done\n";
     }
 
-    public function sendEmailToResponsible($arLead)
+    /**
+     * Группировать по ответственному за лид
+     *
+     * @param $arLeads
+     * @param $field
+     * @return array
+     */
+    public function groupLeadsBy($arLeads, $field)
     {
-        $email = $userId = $contactName = ''; // TODO
+        $grouped = [];
+
+        foreach ($arLeads as $lead)
+        {
+            if (!isset($grouped[$lead[$field]]))
+            {
+                $grouped[$lead[$field]] = [];
+            }
+
+            $grouped[$lead[$field]][] = $lead;
+        }
+
+        return array_values($grouped);
+    }
+
+    /**
+     * Получить доп. детали для каждого лида
+     *
+     * @param $arLead
+     * @return mixed
+     */
+    public function assembleLead($arLead)
+    {
+        $arLead['DURATION'] = $this->getStageDuration($arLead['ID']);
+
+        return $arLead;
+    }
+
+    /**
+     * Получить длительность нахождения лида в последнее стадии в днях
+     *
+     * @param $leadId
+     * @return int|null
+     */
+    public function getStageDuration($leadId)
+    {
+        // , указав в фильтре ENTITY_ID, ENTITY_TYPE и ENTITY_FIELD
+        $events = CCrmEvent::GetList(
+            [
+                'DATE_CREATE' => 'DESC',
+            ],
+            [
+                'CHECK_PERMISSIONS' => 'N',
+                'ENTITY_ID' => $leadId,
+                'ENTITY_TYPE' => 'LEAD',
+                'ENTITY_FIELD' => 'STATUS_ID',
+            ]
+        );
+
+        $last = $prev = null;
+
+        while ($event = $events->Fetch())
+        {
+            if (is_null($last))
+            {
+                $last = \Bitrix\Main\Type\DateTime::tryParse($event['DATE_CREATE']);
+            } elseif (is_null($prev))
+            {
+                $prev = \Bitrix\Main\Type\DateTime::tryParse($event['DATE_CREATE']);
+            } else
+            {
+                break;
+            }
+        }
+
+        if ($last && $prev)
+        {
+            return (int) $last->getDiff($prev)->days;
+        }
+
+        return null;
+    }
+
+    /**
+     * Послать письмо руководителю ответственного за лид
+     *
+     * @param mixed[] $arLeads - список лидов
+     */
+    public function sendEmailToResponsible($arLeads)
+    {
+        // Получить ID ответственного?
+        /*
+        $userId = $arLeads[0][self::FIELD_OWNER];
+        $email = $this->getContactEmail($userId);
 
         $message = $this->assembleMessage(
-            $arLead,
+            $arLeads,
             "Некоторые лиды ваших сотрудников долго не двигались по воронке.
             Убедитесь, что были предприняты достаточные усилия, уточните причины невозможности продвижения лида на
             последующие стадии.<div>{$contactName}</div>");
 
-        Event::send([
+        $this->sendEmaiLWrapper([
             'EVENT_NAME' => 'EMAIL_FORM',
             'LID'        => 's1',
             'C_FIELDS'   => [
@@ -52,19 +156,26 @@ class SendOutdated extends DmitryTestBase
                 'USER_ID' => $userId,
             ],
         ]);
+        */
     }
 
-    public function sendEmailToOwner($arLead)
+    /**
+     * Послать письмо ответственному за лид
+     *
+     * @param $arLeads
+     */
+    public function sendEmailToOwner($arLeads)
     {
-        $email = $userId = ''; // TODO
+        $userId = $arLeads[0][self::FIELD_OWNER];
+        $email = $this->getContactEmail($userId);
 
         $message = $this->assembleMessage(
-            $arLead,
+            $arLeads,
             "Некоторые ваши лиды долго не двигались по воронке. Убедитесь, что были предприняты достаточные
             усилия, оцените дальнейшие перспективы: если их нет — закройте лиды."
         );
 
-        Event::send([
+        $this->sendEmaiLWrapper([
             'EVENT_NAME' => 'EMAIL_FORM',
             'LID'        => 's1',
             'C_FIELDS'   => [
@@ -75,25 +186,29 @@ class SendOutdated extends DmitryTestBase
         ]);
     }
 
+    /**
+     * Текст письма
+     *
+     * @param mixed[] $arLeads - массив с лидами
+     * @param $message - сообщение
+     * @return string - текст сообщения
+     */
     public function assembleMessage($arLeads, $message)
     {
         $html = <<<EOT
 <div>{$message}</div>
 <table>
 <tbody>
+
 EOT;
 
         foreach ($arLeads as $lead)
         {
-            $link = ''; //
-            $days = '';
-            $status = $this->leadStatusToText($lead['STATUS_ID']);
-
             $html .= "<tr>";
-            $html .= "<td>{$link}</td>";
-            $html .= "<td>{$status}</td>";
-            $html .= "<td>{$days}</td>";
-            $html .= "</tr>";
+            $html .= "<td><a href='{$this->getLeadUrl($lead['ID'])}'>{$this->toUtf($lead['TITLE'])}</a></td>";
+            $html .= "<td>{$this->leadStatusToText($lead['STATUS_ID'])}</td>";
+            $html .= "<td>{$lead['DURATION']} day(s)</td>";
+            $html .= "</tr>\n";
         }
 
         $html .= <<<EOT
