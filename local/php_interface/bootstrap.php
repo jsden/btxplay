@@ -58,12 +58,12 @@ class DmitryTestBase
 
     protected function getContactHyperLink($arContact)
     {
-        return "<a href='{$this->getContactEmail($arContact['ID'])}'>{$arContact['FULL_NAME']}</a>";
+        return "<a href='{$this->getContactUrl($arContact['ID'])}'>{$arContact['FULL_NAME']}</a>";
     }
 
     protected function getContactUrl($id)
     {
-        return $this->getServerUrl() . "/contact/details/{$id}/";
+        return $this->getServerUrl() . "/crm/contact/details/{$id}/";
     }
 
     protected function getLeadUrl($id)
@@ -92,6 +92,37 @@ class DmitryTestBase
         print_r($data);
 
         // Event::send($data);
+    }
+
+    protected function getUserManager($userId)
+    {
+        $sections = CIntranetUtils::GetUserDepartments($userId);
+        foreach ($sections as $section) {
+            $manager = CIntranetUtils::GetDepartmentManagerID($section);
+            while (empty($manager)) {
+                $res = CIBlockSection::GetByID($section);
+                if ($sectionInfo = $res->GetNext()) {
+                    $manager = CIntranetUtils::GetDepartmentManagerID($section);
+                    $section = $sectionInfo['IBLOCK_SECTION_ID'];
+                    if ($section < 1) break;
+                } else break;
+            }
+            if ($manager > 0) return $manager;
+        }
+
+        return null;
+    }
+
+    protected function getUser($id)
+    {
+        return CUser::GetByID($id)->Fetch();
+    }
+
+    protected function getUserEmail($id)
+    {
+        $user = $this->getUser($id);
+
+        return $user['EMAIL'];
     }
 
     protected function getContactEmail($id)

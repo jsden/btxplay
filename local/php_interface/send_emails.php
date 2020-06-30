@@ -27,6 +27,7 @@ class SendEmails extends DmitryTestBase
             'EMAIL'   => $email,
             'USER_ID' => $arContact['ID'],
         ];
+
         $result = CEvent::Send('EMAIL_FORM', 's1', $arEventFields, 'N', 1);
 
         if ($result)

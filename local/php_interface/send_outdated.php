@@ -5,7 +5,7 @@ require_once "./bootstrap.php";
 
 class SendOutdated extends DmitryTestBase
 {
-    const OUTDATED_FILTER = '-1 second';
+    const OUTDATED_FILTER = '-1 day';
 
     public function __invoke()
     {
@@ -40,7 +40,7 @@ class SendOutdated extends DmitryTestBase
             foreach ($arGroupedLeads as $arGrouped)
             {
                 $this->sendEmailToOwner($arGrouped);
-                $this->sendEmailToResponsible($arGrouped);
+                $this->sendEmailToManager($arGrouped);
             }
         }
 
@@ -134,18 +134,24 @@ class SendOutdated extends DmitryTestBase
      *
      * @param mixed[] $arLeads - список лидов
      */
-    public function sendEmailToResponsible($arLeads)
+    public function sendEmailToManager($arLeads)
     {
-        // Получить ID ответственного?
-        /*
         $userId = $arLeads[0][self::FIELD_OWNER];
-        $email = $this->getContactEmail($userId);
+        $managerUserId = $this->getUserManager($userId);
+
+        if (!$managerUserId)
+        {
+            return;
+        }
+
+        $user = $this->getUser($userId);
+        $email = $this->getUserEmail($managerUserId);
 
         $message = $this->assembleMessage(
             $arLeads,
             "Некоторые лиды ваших сотрудников долго не двигались по воронке.
             Убедитесь, что были предприняты достаточные усилия, уточните причины невозможности продвижения лида на
-            последующие стадии.<div>{$contactName}</div>");
+            последующие стадии.<p></p><div>" . $this->toUtf($user['NAME']) . "</div>");
 
         $this->sendEmaiLWrapper([
             'EVENT_NAME' => 'EMAIL_FORM',
@@ -153,10 +159,9 @@ class SendOutdated extends DmitryTestBase
             'C_FIELDS'   => [
                 'MESSAGE' => $message,
                 'EMAIL'   => $email,
-                'USER_ID' => $userId,
+                'USER_ID' => $managerUserId,
             ],
         ]);
-        */
     }
 
     /**
@@ -167,7 +172,7 @@ class SendOutdated extends DmitryTestBase
     public function sendEmailToOwner($arLeads)
     {
         $userId = $arLeads[0][self::FIELD_OWNER];
-        $email = $this->getContactEmail($userId);
+        $email = $this->getUserEmail($userId);
 
         $message = $this->assembleMessage(
             $arLeads,

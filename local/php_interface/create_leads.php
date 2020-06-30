@@ -60,7 +60,7 @@ class CreateLeads extends DmitryTestBase
         $arFields = [
             'ASSIGNED_BY_ID'      => self::CREATOR_ID,
             'SOURCE_ID'           => 'PARTNER',
-            'TITLE'               => $this->fromUtf("Лид для продвижения вебинара {$this->getContactHyperLink($arContact)}"),
+            'TITLE'               => $this->fromUtf("Лид для продвижения вебинара {$arContact['FULL_NAME']}"),
             'NAME'                => $arContact['NAME'],
             'LAST_NAME'           => $arContact['LAST_NAME'],
             'SECOND_NAME'         => $arContact['SECOND_NAME'],
