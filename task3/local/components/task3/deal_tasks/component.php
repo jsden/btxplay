@@ -1,20 +1,22 @@
 <?php
-if (check_bitrix_sessid() && $_SERVER['REQUEST_METHOD'] == "POST" && !empty($_REQUEST["error_message"]) && !empty($_REQUEST["error_url"]))
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true)
 {
-	/*
-    $arMailFields = Array();
-    $arMailFields["ERROR_MESSAGE"] = trim ($_REQUEST["error_message"]);
-    $arMailFields["ERROR_DESCRIPTION"] = trim ($_REQUEST["error_desc"]);
-    $arMailFields["ERROR_URL"] = $_REQUEST["error_url"];
-    $arMailFields["ERROR_REFERER"] = $_REQUEST["error_referer"];
-    $arMailFields["ERROR_USERAGENT"] = $_REQUEST["error_useragent"];
-
-	CEvent::Send("BX", SITE_ID, $arMailFields);
-	 */
+    die();
 }
-$dealRepo = new \Itech\Bitrix\Repo\CRM\DealRepo();
-$deal = $dealRepo->getById($arParams['ID']);
 
-$arResult['DEAL'] = $deal;
+/** @var CDealTasks $this */
 
-$this->IncludeComponentTemplate();
+$arResult['GRID_ID'] = 'deal_tasks';
+
+$arResult["FILTER"] = array(
+    ['id' => 'TYPE_NAME', 'name' => 'Дело', 'type' => 'string'],
+);
+
+// Применить фильтр тут
+$arResult["ROWS"] = $this->getTasks(
+    $arParams['ID'],
+    new \Bitrix\Main\UI\Filter\Options($arResult['GRID_ID']),
+    $arResult['FILTER']
+);
+
+$this->includeComponentTemplate();
