@@ -47,7 +47,7 @@ class EDU5
             ->from($fromUser)
             ->type(\Itech\Bitrix\Model\CIMMessage::IM_NOTIFY_SYSTEM)
             ->title($message)
-            ->get();
+            ->build();
 
         // Send notification
         $notificationService = new \Itech\Bitrix\Service\NotificationService();
