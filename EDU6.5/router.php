@@ -4,7 +4,7 @@ $_SERVER['DOCUMENT_ROOT'] = __DIR__;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/local/vendor/autoload.php';
 
 // подключение пролога
-require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
+require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
 
 \Bitrix\Main\Loader::includeModule('crm');
 
