@@ -94,6 +94,8 @@ class dmitry_edu8 extends CModule
     {
         global $DB;
 
+        $DB->RunSQLBatch(__DIR__ . "/dump.sql");
+
         $DB->Query("CREATE TABLE `my_city` (
             `ID` int(11) NOT NULL AUTO_INCREMENT,
             `NAME` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
