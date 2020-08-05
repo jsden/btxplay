@@ -64,7 +64,7 @@ class dmitry_edu8 extends CModule
         }
 
         $APPLICATION->IncludeAdminFile(
-            Loc::getMessage('EDU8_INSTALL_TITLE') . " \"" . Loc::getMessage("FALBAR_TOTOP_NAME") . "\"",
+            Loc::getMessage('EDU8_INSTALL_TITLE') . " \"" . Loc::getMessage("EDU8_MODULE_NAME") . "\"",
             __DIR__ . "/step.php"
         );
 
@@ -92,6 +92,20 @@ class dmitry_edu8 extends CModule
 
     public function InstallDB()
     {
+        global $DB;
+
+        $DB->Query("CREATE TABLE `my_city` (
+            `ID` int(11) NOT NULL AUTO_INCREMENT,
+            `NAME` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `REGION_ID` int(11) NOT NULL,
+            PRIMARY KEY (`ID`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+
+        $DB->Query("CREATE TABLE `my_region` (
+            `ID` int(11) NOT NULL AUTO_INCREMENT,
+            `NAME` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            PRIMARY KEY (`ID`)
+            ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 
         return false;
     }
@@ -153,6 +167,10 @@ class dmitry_edu8 extends CModule
 
     public function UnInstallDB()
     {
+        global $DB;
+
+        $DB->Query("DROP TABLE my_city");
+        $DB->Query("DROP TABLE my_region");
 
         Option::delete($this->MODULE_ID);
 
