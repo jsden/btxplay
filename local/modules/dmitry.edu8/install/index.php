@@ -73,6 +73,7 @@ class dmitry_edu8 extends CModule
 
     public function InstallFiles()
     {
+        /*
         CopyDirFiles(
             __DIR__ . "/assets/scripts",
             Application::getDocumentRoot() . "/bitrix/js/" . $this->MODULE_ID . "/",
@@ -86,6 +87,7 @@ class dmitry_edu8 extends CModule
             true,
             true
         );
+        */
 
         return false;
     }
@@ -96,6 +98,7 @@ class dmitry_edu8 extends CModule
 
         $DB->RunSQLBatch(__DIR__ . "/dump.sql");
 
+        $DB->Query("DROP TABLE IF EXISTS my_city");
         $DB->Query("CREATE TABLE `my_city` (
             `ID` int(11) NOT NULL AUTO_INCREMENT,
             `NAME` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -103,6 +106,7 @@ class dmitry_edu8 extends CModule
             PRIMARY KEY (`ID`)
             ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 
+        $DB->Query("DROP TABLE IF EXISTS my_region");
         $DB->Query("CREATE TABLE `my_region` (
             `ID` int(11) NOT NULL AUTO_INCREMENT,
             `NAME` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -155,7 +159,7 @@ class dmitry_edu8 extends CModule
 
     public function UnInstallFiles()
     {
-
+        /*
         Directory::deleteDirectory(
             Application::getDocumentRoot() . "/bitrix/js/" . $this->MODULE_ID
         );
@@ -163,6 +167,7 @@ class dmitry_edu8 extends CModule
         Directory::deleteDirectory(
             Application::getDocumentRoot() . "/bitrix/css/" . $this->MODULE_ID
         );
+        */
 
         return false;
     }

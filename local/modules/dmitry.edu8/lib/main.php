@@ -33,7 +33,7 @@ class Main
         */
 
         // Asset::getInstance()->addJs("/bitrix/js/" . $module_id . "/jquery.min.js");
-        Asset::getInstance()->addJs("/bitrix/js/" . $module_id . "/edu8.js");
+        // Asset::getInstance()->addJs("/bitrix/js/" . $module_id . "/edu8.js");
 
         // Asset::getInstance()->addCss("/bitrix/css/" . $module_id . "/style.min.css");
 

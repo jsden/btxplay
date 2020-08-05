@@ -7,4 +7,12 @@ CModule::AddAutoloadClasses(
     ]
 );
 
-CJSCore::Init(['jquery2']);
+CJSCore::RegisterExt(
+    'Edu8',
+    [
+        'js'   => '/local/modules/dmitry.edu8/lib/js/edu8.js',
+        'rel'  => ['jquery2'],
+    ]
+);
+
+CJSCore::Init(['jquery2', 'Edu8']);
